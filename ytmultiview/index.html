@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>YouTube Multi View – Loop + Mute</title>
+    <style>
+      :root {
+        --primary-color: #ff0000;
+        --secondary-color: #282828;
+        --text-color: #333;
+        --light-gray: #f5f5f5;
+        --border-color: #ddd;
+      }
+
+      body {
+        font-family: "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+        color: var(--text-color);
+        line-height: 1.6;
+      }
+
+      h2 {
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 10px;
+      }
+
+      .control-panel {
+        background-color: var(--light-gray);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      input {
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+      }
+
+      button {
+        padding: 10px 15px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      button:hover {
+        background-color: #cc0000;
+        transform: translateY(-1px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button.secondary {
+        background-color: var(--secondary-color);
+      }
+
+      button.secondary:hover {
+        background-color: #1a1a1a;
+      }
+
+      #videos {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+        gap: 15px;
+      }
+
+      .video-container {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+      }
+
+      .video-container:hover {
+        transform: translateY(-3px);
+      }
+
+      iframe {
+        width: 100%;
+        height: 270px;
+        border: none;
+      }
+
+      .video-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 5px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .video-container:hover .video-actions {
+        opacity: 1;
+      }
+
+      .video-actions button {
+        padding: 5px 8px;
+        font-size: 12px;
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        background-color: var(--light-gray);
+        border-radius: 8px;
+      }
+
+      @media (max-width: 600px) {
+        #videos {
+          grid-template-columns: 1fr;
+        }
+
+        .input-group {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        input,
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h2>YouTube Multi View</h2>
+
+    <div class="control-panel">
+      <div class="input-group">
+        <input
+          type="text"
+          id="videoUrl"
+          placeholder="Paste YouTube URL (e.g., https://youtu.be/dQw4w9WgXcQ)"
+          size="50"
+        />
+        <input
+          type="number"
+          id="startTime"
+          placeholder="Start time (seconds)"
+          min="0"
+        />
+        <input
+          type="number"
+          id="videoCount"
+          placeholder="Number of copies"
+          min="1"
+          value="1"
+          style="width: 120px"
+        />
+        <button onclick="addVideo()">➕ Add Video</button>
+      </div>
+
+      <div class="input-group">
+        <button onclick="playAll()">▶️ Play All</button>
+        <button onclick="pauseAll()">⏸️ Pause All</button>
+        <button onclick="muteAll()">🔇 Mute All</button>
+        <button onclick="unmuteAll()">🔊 Unmute All</button>
+        <button onclick="stopAll()" class="secondary">⏹️ Stop All</button>
+        <button onclick="clearAll()" class="secondary">🗑️ Clear All</button>
+      </div>
+    </div>
+
+    <div id="videos">
+      <div class="empty-state" id="emptyState">
+        <p>No videos added yet. Add your first YouTube video to get started!</p>
+      </div>
+    </div>
+
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+      let players = [];
+      const emptyState = document.getElementById("emptyState");
+
+      function updateEmptyState() {
+        emptyState.style.display = players.length > 0 ? "none" : "block";
+      }
+
+      function extractVideoId(url) {
+        // Handle various YouTube URL formats
+        const patterns = [
+          /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+          /youtube\.com\/live\/([^"&?\/\s]{11})/,
+          /youtube\.com\/shorts\/([^"&?\/\s]{11})/,
+        ];
+
+        for (const pattern of patterns) {
+          const match = url.match(pattern);
+          if (match) return match[1];
+        }
+        return null;
+      }
+
+      function addVideo() {
+        const url = document.getElementById("videoUrl").value.trim();
+        const start = parseInt(document.getElementById("startTime").value) || 0;
+        const count =
+          parseInt(document.getElementById("videoCount").value) || 1;
+        const videoId = extractVideoId(url);
+
+        if (!videoId) {
+          alert("Please enter a valid YouTube URL");
+          return;
+        }
+
+        for (let i = 0; i < count; i++) {
+          const container = document.createElement("div");
+          container.className = "video-container";
+          const playerId = "player_" + Date.now() + "_" + i;
+
+          container.innerHTML = `
+      <div id="${playerId}"></div>
+      <div class="video-actions">
+        <button onclick="removeVideo('${playerId}')">✕</button>
+      </div>
+    `;
+
+          document.getElementById("videos").appendChild(container);
+
+          new YT.Player(playerId, {
+            height: "270",
+            width: "480",
+            videoId: videoId,
+            playerVars: {
+              start: start,
+              enablejsapi: 1,
+              modestbranding: 1,
+              rel: 0,
+              controls: 1,
+            },
+            events: {
+              onReady: function (event) {
+                players.push({
+                  player: event.target,
+                  startTime: start,
+                  container: container,
+                  id: playerId,
+                });
+                updateEmptyState();
+              },
+              onStateChange: function (event) {
+                if (event.data === YT.PlayerState.ENDED) {
+                  const p = players.find((p) => p.player === event.target);
+                  if (p) {
+                    setTimeout(() => {
+                      p.player.seekTo(p.startTime);
+                      p.player.playVideo();
+                    }, 500);
+                  }
+                }
+              },
+            },
+          });
+        }
+
+        // Clear inputs
+        document.getElementById("videoUrl").value = "";
+        document.getElementById("startTime").value = "";
+        document.getElementById("videoCount").value = "1";
+      }
+      function removeVideo(playerId) {
+        const playerIndex = players.findIndex((p) => p.id === playerId);
+        if (playerIndex !== -1) {
+          players[playerIndex].player.destroy();
+          players[playerIndex].container.remove();
+          players.splice(playerIndex, 1);
+          updateEmptyState();
+        }
+      }
+
+      function playAll() {
+        players.forEach((p) => p.player.playVideo());
+      }
+
+      function pauseAll() {
+        players.forEach((p) => p.player.pauseVideo());
+      }
+
+      function muteAll() {
+        players.forEach((p) => p.player.mute());
+      }
+
+      function unmuteAll() {
+        players.forEach((p) => p.player.unMute());
+      }
+
+      function stopAll() {
+        players.forEach((p) => {
+          p.player.stopVideo();
+          p.player.seekTo(p.startTime, true);
+        });
+      }
+
+      function clearAll() {
+        players.forEach((p) => {
+          p.player.destroy();
+          p.container.remove();
+        });
+        players = [];
+        updateEmptyState();
+      }
+
+      // Allow adding video with Enter key
+      document
+        .getElementById("videoUrl")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            addVideo();
+          }
+        });
+    </script>
+  </body>
+</html>
