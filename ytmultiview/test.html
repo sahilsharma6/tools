@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>YouTube Multi View – Loop + Mute</title>
+    <title>YouTube Multi View – Persistent Multi-Player</title>
     <style>
       :root {
         --primary-color: #ff0000;
@@ -204,16 +204,20 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
+      const STORAGE_KEY = "youtubeMultiViewVideos";
       let players = [];
       const emptyState = document.getElementById("emptyState");
 
-      console.log(players);
+      // Initialize when YouTube API is ready
+      function onYouTubeIframeAPIReady() {
+        loadSavedVideos();
+      }
+
       function updateEmptyState() {
         emptyState.style.display = players.length > 0 ? "none" : "block";
       }
 
       function extractVideoId(url) {
-        // Handle various YouTube URL formats
         const patterns = [
           /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
           /youtube\.com\/live\/([^"&?\/\s]{11})/,
@@ -239,26 +243,52 @@
           return;
         }
 
-        for (let i = 0; i < count; i++) {
+        // Create video objects
+        const newVideos = Array(count)
+          .fill()
+          .map((_, i) => ({
+            videoId,
+            startTime: start,
+            playerId: `player_${Date.now()}_${i}`,
+          }));
+
+        // Save to localStorage
+        const savedVideos = JSON.parse(
+          localStorage.getItem(STORAGE_KEY) || "[]"
+        );
+
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify([...savedVideos, ...newVideos])
+        );
+
+        // Create players
+        createVideoPlayers(newVideos);
+
+        // Clear inputs
+        document.getElementById("videoUrl").value = "";
+        document.getElementById("startTime").value = "";
+        document.getElementById("videoCount").value = "1";
+      }
+
+      function createVideoPlayers(videos) {
+        videos.forEach((video) => {
           const container = document.createElement("div");
           container.className = "video-container";
-          const playerId = "player_" + Date.now() + "_" + i;
-
           container.innerHTML = `
-      <div id="${playerId}"></div>
-      <div class="video-actions">
-        <button onclick="removeVideo('${playerId}')">✕</button>
-      </div>
-    `;
-
+            <div id="${video.playerId}"></div>
+            <div class="video-actions">
+              <button onclick="removeVideo('${video.playerId}')">✕</button>
+            </div>
+          `;
           document.getElementById("videos").appendChild(container);
 
-          new YT.Player(playerId, {
+          new YT.Player(video.playerId, {
             height: "270",
             width: "480",
-            videoId: videoId,
+            videoId: video.videoId,
             playerVars: {
-              start: start,
+              start: video.startTime,
               enablejsapi: 1,
               modestbranding: 1,
               rel: 0,
@@ -268,9 +298,10 @@
               onReady: function (event) {
                 players.push({
                   player: event.target,
-                  startTime: start,
+                  startTime: video.startTime,
                   container: container,
-                  id: playerId,
+                  id: video.playerId,
+                  videoId: video.videoId,
                 });
                 updateEmptyState();
               },
@@ -287,13 +318,18 @@
               },
             },
           });
-        }
-
-        // Clear inputs
-        document.getElementById("videoUrl").value = "";
-        document.getElementById("startTime").value = "";
-        document.getElementById("videoCount").value = "1";
+        });
       }
+
+      function loadSavedVideos() {
+        const savedVideos = JSON.parse(
+          localStorage.getItem(STORAGE_KEY) || "[]"
+        );
+        if (savedVideos.length > 0) {
+          createVideoPlayers(savedVideos);
+        }
+      }
+
       function removeVideo(playerId) {
         const playerIndex = players.findIndex((p) => p.id === playerId);
         if (playerIndex !== -1) {
@@ -301,6 +337,14 @@
           players[playerIndex].container.remove();
           players.splice(playerIndex, 1);
           updateEmptyState();
+
+          // Update localStorage
+          const updatedVideos = players.map((p) => ({
+            videoId: p.videoId,
+            startTime: p.startTime,
+            playerId: p.id,
+          }));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedVideos));
         }
       }
 
@@ -334,9 +378,9 @@
         });
         players = [];
         updateEmptyState();
+        localStorage.removeItem(STORAGE_KEY);
       }
 
-      // Allow adding video with Enter key
       document
         .getElementById("videoUrl")
         .addEventListener("keypress", function (e) {
