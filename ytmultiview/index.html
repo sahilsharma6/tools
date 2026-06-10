@@ -466,6 +466,22 @@
         font-size: 11px;
         min-width: 24px;
       }
+      .playlist-detail .pd-video-item .btn-add-vid {
+        background: rgba(0, 229, 160, 0.15);
+        color: var(--accent3);
+        border: 1px solid rgba(0, 229, 160, 0.2);
+      }
+      .playlist-detail .pd-video-item .btn-add-vid:hover {
+        background: rgba(0, 229, 160, 0.3);
+      }
+      .btn-random {
+        background: rgba(124, 77, 255, 0.15);
+        color: var(--accent2);
+        border: 1px solid rgba(124, 77, 255, 0.2);
+      }
+      .btn-random:hover {
+        background: rgba(124, 77, 255, 0.3);
+      }
 
       /* ═══════════════════════════════════════
          VIDEO GRID
@@ -624,6 +640,47 @@
         transform: scale(1.1);
       }
 
+      /* Volume slider in video info bar */
+      .video-volume-wrap {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+      .video-volume-wrap input[type="range"] {
+        width: 60px;
+        height: 3px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+      }
+      .video-volume-wrap input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent3);
+        cursor: pointer;
+      }
+      .video-volume-wrap input[type="range"]::-moz-range-thumb {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent3);
+        cursor: pointer;
+        border: none;
+      }
+      .video-volume-wrap .vol-icon {
+        font-size: 11px;
+        color: var(--text-muted);
+        width: 14px;
+        text-align: center;
+      }
+
       /* ═══════════════════════════════════════
          EMPTY STATE
          ═══════════════════════════════════════ */
@@ -732,6 +789,7 @@
       .setting-group label {
         font-size: 13px;
         color: var(--text-secondary);
+        white-space: nowrap;
       }
 
       .setting-group input[type="number"],
@@ -752,6 +810,48 @@
       .setting-group input:focus,
       .setting-group select:focus {
         border-color: var(--border-focus);
+      }
+
+      /* Volume slider (master) */
+      .vol-master-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .vol-master-wrap input[type="range"] {
+        width: 80px;
+        height: 4px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+      }
+      .vol-master-wrap input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent3);
+        cursor: pointer;
+        border: 2px solid var(--bg-input);
+      }
+      .vol-master-wrap input[type="range"]::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent3);
+        cursor: pointer;
+        border: 2px solid var(--bg-input);
+      }
+      .vol-master-wrap .vol-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        min-width: 28px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
       }
 
       /* Toggle switch */
@@ -791,6 +891,26 @@
       .toggle-label {
         font-size: 13px;
         color: var(--text-secondary);
+      }
+
+      /* Export/Import buttons */
+      .data-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+        width: 100%;
+      }
+      .data-actions .btn {
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+
+      /* Sleep timer label */
+      #sleepTimerLabel {
+        font-size: 12px;
+        color: var(--accent3);
+        font-weight: 600;
+        margin-left: 4px;
       }
 
       /* ═══════════════════════════════════════
@@ -983,19 +1103,42 @@
               <span class="toggle-label">Auto-Loop Videos</span>
             </div>
 
-            <div class="toggle-wrap">
-              <div class="toggle" id="autoReloadToggle" onclick="toggleAutoReload()"></div>
-              <span class="toggle-label">Auto-Reload (views)</span>
-            </div>
-
-            <div class="setting-group" id="reloadIntervalGroup" style="display:none;">
-              <label>Reload every:</label>
-              <select id="reloadInterval">
+            <div class="setting-group">
+              <label>Auto-Reload:</label>
+              <select id="reloadInterval" style="width:auto;" onchange="onReloadIntervalChange(this.value)">
+                <option value="0">No Reload</option>
                 <option value="300">5 min</option>
                 <option value="600" selected>10 min</option>
                 <option value="900">15 min</option>
                 <option value="1800">30 min</option>
               </select>
+            </div>
+
+            <div class="setting-group" style="gap:4px;">
+              <label>Master Volume:</label>
+              <div class="vol-master-wrap">
+                <span class="vol-icon" style="font-size:12px;">🔊</span>
+                <input type="range" id="masterVolumeSlider" min="0" max="100" value="100" oninput="onMasterVolumeChange(this.value)" />
+                <span class="vol-label" id="masterVolumeLabel">100</span>
+              </div>
+            </div>
+
+            <div class="setting-group" style="gap:4px;">
+              <label>Sleep Timer:</label>
+              <select id="sleepTimerSelect" onchange="onSleepTimerChange(this.value)" style="width:auto;">
+                <option value="0">Off</option>
+                <option value="15">15 min</option>
+                <option value="30">30 min</option>
+                <option value="60">1 hour</option>
+                <option value="120">2 hours</option>
+              </select>
+              <span id="sleepTimerLabel"></span>
+            </div>
+
+            <div class="data-actions">
+              <button class="btn btn-secondary btn-sm" onclick="exportData()">📥 Export Data</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFileInput').click()">📤 Import Data</button>
+              <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)" />
             </div>
           </div>
         </div>
@@ -1059,6 +1202,7 @@
          ============================================================ */
       const STORAGE_KEY = "ytmultiview_state";
       const PLAYLISTS_KEY = "ytmultiview_playlists";
+      const DELETED_PRESETS_KEY = "ytmultiview_deleted_presets";
 
       let players = [];
       let totalWatchtimeSeconds = 0;
@@ -1074,6 +1218,10 @@
       let ytReady = false;
       let pendingRestore = false;
 
+      let masterVolume = 100;
+      let sleepTimerMinutes = 0;
+      let sleepTimerInterval = null;
+
       const STATE = {
         settings: {
           autoPlay: true,
@@ -1081,6 +1229,8 @@
           autoReload: false,
           reloadInterval: 600,
           layout: "auto",
+          masterVolume: 100,
+          sleepTimer: 0,
         },
         videos: [], // { videoId, startTime } — restored on load
       };
@@ -1186,6 +1336,12 @@
           return;
         }
 
+        // Duplicate detection
+        const existingCount = players.filter((p) => p.videoId === videoId).length;
+        if (existingCount > 0) {
+          showToast(`⚠️ Video already added (${existingCount} copy${existingCount > 1 ? "s" : ""} playing)`, "success");
+        }
+
         for (let i = 0; i < count; i++) {
           const playerId = "p_" + Date.now() + "_" + i + "_" + Math.random().toString(36).slice(2, 6);
           createPlayer(videoId, start, playerId);
@@ -1222,6 +1378,10 @@
               <span>🔄 <span id="loop_${playerId}">0</span></span>
               <span>⏱ <span class="watchtime-val" id="wt_${playerId}">0s</span></span>
             </div>
+          </div>
+          <div class="video-volume-wrap" style="padding:0 12px 8px;">
+            <span class="vol-icon" id="volIcon_${playerId}">🔊</span>
+            <input type="range" id="volSlider_${playerId}" min="0" max="100" value="${masterVolume}" oninput="onPlayerVolumeChange('${playerId}', this.value)" />
           </div>
         `;
 
@@ -1260,6 +1420,11 @@
               players.push(playerObj);
               updateEmptyState();
               updateStats();
+
+              // Set player volume
+              try {
+                event.target.setVolume(masterVolume);
+              } catch {}
 
               if (isAutoPlay) {
                 event.target.playVideo();
@@ -1537,33 +1702,203 @@
         showToast(isAutoLoop ? "Auto-Loop ON" : "Auto-Loop OFF", "success");
       }
 
-      function toggleAutoReload() {
-        isAutoReload = !isAutoReload;
-        document.getElementById("autoReloadToggle").classList.toggle("active", isAutoReload);
-        document.getElementById("reloadIntervalGroup").style.display = isAutoReload ? "flex" : "none";
-        STATE.settings.autoReload = isAutoReload;
-        if (isAutoReload) {
-          reloadInterval = parseInt(document.getElementById("reloadInterval").value) || 600;
-          startAutoReload();
-          showToast(`Auto-Reload ON (every ${reloadInterval / 60} min)`, "success");
-        } else {
+      function onReloadIntervalChange(value) {
+        const val = parseInt(value) || 0;
+        if (val === 0) {
+          // No Reload selected — turn off
+          isAutoReload = false;
           stopAutoReload();
           showToast("Auto-Reload OFF", "success");
+        } else {
+          // A time interval selected — turn on
+          isAutoReload = true;
+          reloadInterval = val;
+          startAutoReload();
+          showToast(`Auto-Reload ON (every ${reloadInterval / 60} min)`, "success");
+        }
+        STATE.settings.autoReload = isAutoReload;
+        STATE.settings.reloadInterval = reloadInterval;
+        saveState();
+      }
+
+      function toggleAutoReload() {
+        // Toggle between current interval and No Reload
+        const select = document.getElementById("reloadInterval");
+        if (isAutoReload) {
+          select.value = "0";
+          onReloadIntervalChange("0");
+        } else {
+          // Pick the selected value or default to 10 min
+          const val = parseInt(select.value) || 600;
+          if (val === 0) {
+            select.value = "600";
+            onReloadIntervalChange("600");
+          } else {
+            onReloadIntervalChange(String(val));
+          }
+        }
+      }
+
+      /* ============================================================
+         MASTER VOLUME
+         ============================================================ */
+      function onMasterVolumeChange(value) {
+        masterVolume = parseInt(value) || 100;
+        document.getElementById("masterVolumeLabel").textContent = masterVolume;
+        // Apply to all existing players
+        players.forEach((p) => {
+          try {
+            p.player.setVolume(masterVolume);
+          } catch {}
+          // Update slider UI
+          const slider = document.getElementById("volSlider_" + p.id);
+          if (slider) slider.value = masterVolume;
+          const icon = document.getElementById("volIcon_" + p.id);
+          if (icon) icon.textContent = masterVolume === 0 ? "🔇" : masterVolume < 50 ? "🔉" : "🔊";
+        });
+        STATE.settings.masterVolume = masterVolume;
+        saveState();
+      }
+
+      function onPlayerVolumeChange(playerId, value) {
+        const vol = parseInt(value) || 0;
+        const p = players.find((pl) => pl.id === playerId);
+        if (p) {
+          try {
+            p.player.setVolume(vol);
+          } catch {}
+        }
+        const icon = document.getElementById("volIcon_" + playerId);
+        if (icon) icon.textContent = vol === 0 ? "🔇" : vol < 50 ? "🔉" : "🔊";
+      }
+
+      /* ============================================================
+         SLEEP TIMER
+         ============================================================ */
+      function onSleepTimerChange(value) {
+        sleepTimerMinutes = parseInt(value) || 0;
+        STATE.settings.sleepTimer = sleepTimerMinutes;
+        if (sleepTimerInterval) {
+          clearInterval(sleepTimerInterval);
+          sleepTimerInterval = null;
+        }
+        const label = $("sleepTimerLabel");
+        if (sleepTimerMinutes > 0) {
+          const endTime = Date.now() + sleepTimerMinutes * 60 * 1000;
+          label.textContent = `⏰ ${formatTimeRemaining(sleepTimerMinutes * 60)}`;
+          sleepTimerInterval = setInterval(() => {
+            const remaining = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+            if (remaining <= 0) {
+              clearInterval(sleepTimerInterval);
+              sleepTimerInterval = null;
+              pauseAll();
+              label.textContent = "⏰ Done!";
+              showToast("💤 Sleep timer: All videos paused", "success");
+              $("sleepTimerSelect").value = "0";
+              sleepTimerMinutes = 0;
+              STATE.settings.sleepTimer = 0;
+              saveState();
+            } else {
+              label.textContent = `⏰ ${formatTimeRemaining(remaining)}`;
+            }
+          }, 1000);
+          showToast(`Sleep timer set for ${sleepTimerMinutes} min`, "success");
+        } else {
+          label.textContent = "";
         }
         saveState();
       }
 
-      // Reload interval change
-      document.addEventListener("change", (e) => {
-        if (e.target.id === "reloadInterval") {
-          reloadInterval = parseInt(e.target.value) || 600;
-          if (isAutoReload) {
-            startAutoReload();
+      function formatTimeRemaining(secs) {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${m}:${String(s).padStart(2, "0")}`;
+      }
+
+      /* ============================================================
+         EXPORT / IMPORT DATA
+         ============================================================ */
+      function exportData() {
+        const data = {
+          exportedAt: new Date().toISOString(),
+          app: "YT MultiView",
+          version: 1,
+          customPlaylists: customPlaylists,
+          deletedPresets: deletedPresets,
+          settings: STATE.settings,
+          totalWatchtimeSeconds,
+          totalViews,
+          totalLoops,
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ytmultiview_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("📥 Data exported successfully", "success");
+      }
+
+      function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data.customPlaylists || !data.settings) {
+              throw new Error("Invalid backup file");
+            }
+            if (!confirm(`Import data from backup? This will overwrite current playlists and settings.`)) return;
+            customPlaylists = data.customPlaylists || [];
+            deletedPresets = data.deletedPresets || [];
+            try {
+              localStorage.setItem(DELETED_PRESETS_KEY, JSON.stringify(deletedPresets));
+            } catch {}
+            if (data.settings) Object.assign(STATE.settings, data.settings);
+            if (data.totalWatchtimeSeconds) totalWatchtimeSeconds = data.totalWatchtimeSeconds;
+            if (data.totalViews) totalViews = data.totalViews;
+            if (data.totalLoops) totalLoops = data.totalLoops;
+            try {
+              localStorage.setItem(PLAYLISTS_KEY, JSON.stringify(customPlaylists));
+            } catch {}
+            applySettingsUI();
+            renderPlaylists();
+            updateStats();
+            saveState();
+            showToast("📤 Data imported successfully", "success");
+          } catch (err) {
+            showToast("Import failed: " + err.message, "error");
           }
-          STATE.settings.reloadInterval = reloadInterval;
-          saveState();
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+      }
+
+      /* ============================================================
+         RANDOM VIDEO FROM PLAYLIST
+         ============================================================ */
+      function addRandomVideoFromPlaylist(encodedName) {
+        const name = decodeURIComponent(encodedName);
+        let pl = customPlaylists.find((p) => p.name === name);
+        if (!pl) {
+          const visiblePresets = PRESET_PLAYLISTS.filter(
+            (p) => !deletedPresets.includes(p.name)
+          );
+          pl = visiblePresets.find((p) => p.name === name);
         }
-      });
+        if (!pl || pl.videos.length === 0) {
+          showToast("Playlist is empty", "error");
+          return;
+        }
+        const randomIndex = Math.floor(Math.random() * pl.videos.length);
+        const randomVid = pl.videos[randomIndex];
+        const playerId = "p_" + Date.now() + "_rnd_" + Math.random().toString(36).slice(2, 6);
+        createPlayer(randomVid, 0, playerId);
+        showToast(`🎲 Random video from "${name}": ${randomVid}`, "success");
+        saveState();
+      }
 
       /* ============================================================
          APPLY SETTINGS UI
@@ -1574,13 +1909,19 @@
         isAutoLoop = s.autoLoop;
         isAutoReload = s.autoReload;
         reloadInterval = s.reloadInterval || 600;
+        masterVolume = s.masterVolume !== undefined ? s.masterVolume : 100;
+        sleepTimerMinutes = s.sleepTimer || 0;
 
         document.getElementById("autoPlayToggle").classList.toggle("active", isAutoPlay);
         document.getElementById("autoLoopToggle").classList.toggle("active", isAutoLoop);
-        document.getElementById("autoReloadToggle").classList.toggle("active", isAutoReload);
-        document.getElementById("reloadIntervalGroup").style.display = isAutoReload ? "flex" : "none";
         document.getElementById("layoutSelect").value = s.layout || "auto";
-        document.getElementById("reloadInterval").value = String(reloadInterval);
+        document.getElementById("reloadInterval").value = isAutoReload ? String(reloadInterval) : "0";
+        document.getElementById("masterVolumeSlider").value = masterVolume;
+        document.getElementById("masterVolumeLabel").textContent = masterVolume;
+        document.getElementById("sleepTimerSelect").value = String(sleepTimerMinutes);
+        if (sleepTimerMinutes > 0) {
+          onSleepTimerChange(String(sleepTimerMinutes));
+        }
 
         if (s.layout && s.layout !== "auto") {
           videosEl.className = "layout-" + s.layout;
@@ -1649,11 +1990,16 @@
       ];
 
       let customPlaylists = [];
+      let deletedPresets = [];
 
       function loadPlaylists() {
         try {
           const raw = localStorage.getItem(PLAYLISTS_KEY);
           if (raw) customPlaylists = JSON.parse(raw);
+        } catch {}
+        try {
+          const raw = localStorage.getItem(DELETED_PRESETS_KEY);
+          if (raw) deletedPresets = JSON.parse(raw);
         } catch {}
         renderPlaylists();
       }
@@ -1662,15 +2008,26 @@
         const grid = $("playlistGrid");
         grid.innerHTML = "";
 
-        const allPlaylists = [...PRESET_PLAYLISTS, ...customPlaylists];
+        const visiblePresets = PRESET_PLAYLISTS.filter(
+          (p) => !deletedPresets.includes(p.name)
+        );
+        const allPlaylists = [...visiblePresets, ...customPlaylists];
 
         allPlaylists.forEach((pl) => {
+          const isCustom = customPlaylists.some((p) => p.name === pl.name);
+
           const card = document.createElement("div");
           card.className = "playlist-card";
           card.innerHTML = `
             <div class="pl-name">${pl.name}</div>
             <div class="pl-count">${pl.videos.length} video${pl.videos.length > 1 ? "s" : ""}</div>
+            <div class="pl-actions">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openPlaylistDetail('${encodeURIComponent(pl.name)}')">📂 Open</button>
+              <button class="btn btn-random btn-sm" onclick="event.stopPropagation(); addRandomVideoFromPlaylist('${encodeURIComponent(pl.name)}')">🎲 Random</button>
+              <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deletePlaylist('${encodeURIComponent(pl.name)}')">🗑 Delete</button>
+            </div>
           `;
+          // Click on card loads all videos directly
           card.addEventListener("click", () => loadPlaylist(pl.videos));
           grid.appendChild(card);
         });
@@ -1678,6 +2035,15 @@
         if (allPlaylists.length === 0) {
           grid.innerHTML =
             '<div style="color:var(--text-muted); font-size:14px; padding:12px;">No playlists yet.</div>';
+        }
+
+        // Close detail panel if the opened playlist no longer exists
+        const detailEl = $("playlistDetail");
+        if (detailEl.classList.contains("visible")) {
+          const openedName = detailEl.dataset.playlistName;
+          if (openedName && !allPlaylists.some((p) => p.name === openedName)) {
+            closePlaylistDetail();
+          }
         }
       }
 
@@ -1691,6 +2057,155 @@
         saveState();
         // Switch to add tab
         switchTab("add");
+      }
+
+      function addSingleVideoFromPlaylist(videoId) {
+        const playerId = "p_" + Date.now() + "_pls_" + Math.random().toString(36).slice(2, 6);
+        createPlayer(videoId, 0, playerId);
+        showToast(`Added video: ${videoId}`, "success");
+        saveState();
+      }
+
+      /* ============================================================
+         PLAYLIST DETAIL VIEW (manage videos inside a playlist)
+         ============================================================ */
+      function openPlaylistDetail(encodedName) {
+        const name = decodeURIComponent(encodedName);
+        // Prefer custom playlist over preset when both exist (same name)
+        let pl = customPlaylists.find((p) => p.name === name);
+        if (!pl) {
+          const visiblePresets = PRESET_PLAYLISTS.filter(
+            (p) => !deletedPresets.includes(p.name)
+          );
+          pl = visiblePresets.find((p) => p.name === name);
+        }
+        if (!pl) {
+          showToast("Playlist not found", "error");
+          return;
+        }
+
+        const isCustom = customPlaylists.some((p) => p.name === name);
+        const detailEl = $("playlistDetail");
+        detailEl.dataset.playlistName = name;
+        detailEl.dataset.isCustom = isCustom ? "true" : "false";
+
+        let videosHtml = "";
+        pl.videos.forEach((vid, i) => {
+          videosHtml += `
+            <div class="pd-video-item">
+              <span class="pd-vid-num">#${i + 1}</span>
+              <span class="pd-vid-id">${vid}</span>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-add-vid btn-sm" onclick="event.stopPropagation(); addSingleVideoFromPlaylist('${vid}')" title="Add this video to player" style="padding:2px 6px; font-size:11px;">➕</button>
+                <button class="btn btn-danger btn-sm" onclick="removeVideoFromPlaylist('${encodeURIComponent(name)}', ${i})" title="Remove from playlist" style="padding:2px 6px; font-size:11px;">✕</button>
+              </div>
+            </div>
+          `;
+        });
+
+        if (!videosHtml) {
+          videosHtml = '<div style="color:var(--text-muted); font-size:13px; padding:8px;">This playlist is empty.</div>';
+        }
+
+        detailEl.innerHTML = `
+          <div class="pd-header">
+            <h4>${pl.name} <span style="font-weight:400; font-size:12px; color:var(--text-muted);">(${pl.videos.length} video${pl.videos.length !== 1 ? "s" : ""})</span></h4>
+            <div class="pd-actions">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); loadPlaylistFromDetail()">▶ Load All</button>
+              <button class="btn btn-random btn-sm" onclick="event.stopPropagation(); addRandomVideoFromPlaylist('${encodeURIComponent(name)}')">🎲 Random</button>
+              <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deletePlaylist('${encodeURIComponent(name)}')">🗑 Delete</button>
+              <button class="btn btn-secondary btn-sm" onclick="closePlaylistDetail()">✕ Close</button>
+            </div>
+          </div>
+          <div class="pd-video-list">${videosHtml}</div>
+        `;
+
+        detailEl.classList.add("visible");
+      }
+
+      function loadPlaylistFromDetail() {
+        const detailEl = $("playlistDetail");
+        const name = detailEl.dataset.playlistName;
+        if (!name) return;
+        // Search custom playlists first, then visible presets
+        let pl = customPlaylists.find((p) => p.name === name);
+        if (!pl) {
+          const visiblePresets = PRESET_PLAYLISTS.filter(
+            (p) => !deletedPresets.includes(p.name)
+          );
+          pl = visiblePresets.find((p) => p.name === name);
+        }
+        if (pl) {
+          loadPlaylist(pl.videos);
+        }
+      }
+
+      function closePlaylistDetail() {
+        const detailEl = $("playlistDetail");
+        detailEl.classList.remove("visible");
+        detailEl.innerHTML = "";
+        delete detailEl.dataset.playlistName;
+        delete detailEl.dataset.isCustom;
+      }
+
+      function removeVideoFromPlaylist(encodedName, index) {
+        const name = decodeURIComponent(encodedName);
+        let customIdx = customPlaylists.findIndex((p) => p.name === name);
+
+        // Auto-clone preset to custom if needed
+        if (customIdx === -1) {
+          const preset = PRESET_PLAYLISTS.find((p) => p.name === name);
+          if (!preset) {
+            showToast("Playlist not found", "error");
+            return;
+          }
+          customPlaylists.push({ name: preset.name, videos: [...preset.videos] });
+          customIdx = customPlaylists.length - 1;
+        }
+
+        const pl = customPlaylists[customIdx];
+        if (index < 0 || index >= pl.videos.length) return;
+        const removed = pl.videos.splice(index, 1)[0];
+        try {
+          localStorage.setItem(PLAYLISTS_KEY, JSON.stringify(customPlaylists));
+        } catch {}
+        renderPlaylists();
+        if (pl.videos.length > 0) {
+          openPlaylistDetail(encodeURIComponent(name));
+        } else {
+          closePlaylistDetail();
+        }
+        showToast(`Removed video from "${name}"`, "success");
+      }
+
+      function deletePlaylist(encodedName) {
+        const name = decodeURIComponent(encodedName);
+        const customIdx = customPlaylists.findIndex((p) => p.name === name);
+
+        if (customIdx === -1) {
+          // It's a preset — permanently delete it from view
+          if (!confirm(`Delete preset playlist "${name}"?`)) return;
+          if (!deletedPresets.includes(name)) {
+            deletedPresets.push(name);
+          }
+          try {
+            localStorage.setItem(DELETED_PRESETS_KEY, JSON.stringify(deletedPresets));
+          } catch {}
+          closePlaylistDetail();
+          renderPlaylists();
+          showToast(`Preset "${name}" deleted`, "success");
+          return;
+        }
+
+        // It's a custom playlist — permanently delete
+        if (!confirm(`Delete custom playlist "${name}"?`)) return;
+        customPlaylists.splice(customIdx, 1);
+        try {
+          localStorage.setItem(PLAYLISTS_KEY, JSON.stringify(customPlaylists));
+        } catch {}
+        closePlaylistDetail();
+        renderPlaylists();
+        showToast(`Playlist "${name}" deleted`, "success");
       }
 
       function saveCurrentAsPlaylist() {
