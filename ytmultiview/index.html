@@ -382,10 +382,22 @@
         font-weight: 600;
         font-size: 14px;
       }
-      .playlist-card .pl-count {
+      .playlist-card          .pl-count {
         font-size: 12px;
         color: var(--text-secondary);
         margin-top: 2px;
+      }
+      .playlist-card .pl-actions {
+        display: none;
+        gap: 4px;
+        margin-top: 8px;
+      }
+      .playlist-card:hover .pl-actions {
+        display: flex;
+      }
+      .playlist-card .pl-actions .btn {
+        padding: 3px 8px;
+        font-size: 11px;
       }
 
       .playlist-custom-row {
@@ -394,6 +406,65 @@
         margin-top: 12px;
         align-items: center;
         flex-wrap: wrap;
+      }
+
+      /* ═══════════════════════════════════════
+         PLAYLIST DETAIL PANEL
+         ═══════════════════════════════════════ */
+      .playlist-detail {
+        margin-top: 12px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        display: none;
+      }
+      .playlist-detail.visible {
+        display: block;
+      }
+      .playlist-detail .pd-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .playlist-detail .pd-header h4 {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .playlist-detail .pd-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .playlist-detail .pd-video-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 240px;
+        overflow-y: auto;
+      }
+      .playlist-detail .pd-video-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      .playlist-detail .pd-video-item .pd-vid-id {
+        font-family: monospace;
+        color: var(--text-secondary);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .playlist-detail .pd-video-item .pd-vid-num {
+        color: var(--text-muted);
+        font-size: 11px;
+        min-width: 24px;
       }
 
       /* ═══════════════════════════════════════
@@ -876,6 +947,7 @@
         <!-- Tab: Playlists -->
         <div class="panel-body" id="tab-playlist">
           <div class="playlist-grid" id="playlistGrid"></div>
+          <div class="playlist-detail" id="playlistDetail"></div>
           <div class="playlist-custom-row">
             <input
               type="text"
