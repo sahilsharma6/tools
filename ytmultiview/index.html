@@ -1,349 +1,1811 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>YouTube Multi View – Loop + Mute</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YT MultiView – Watchtime & Views Booster</title>
     <style>
+      /* ═══════════════════════════════════════
+         RESET & VARIABLES
+         ═══════════════════════════════════════ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
       :root {
-        --primary-color: #ff0000;
-        --secondary-color: #282828;
-        --text-color: #333;
-        --light-gray: #f5f5f5;
-        --border-color: #ddd;
+        --bg-primary: #0b0e1a;
+        --bg-secondary: #111627;
+        --bg-card: #161d33;
+        --bg-card-hover: #1c2545;
+        --bg-input: #0e1324;
+        --text-primary: #e8edf8;
+        --text-secondary: #8b95b3;
+        --text-muted: #5a6480;
+        --accent: #ff0044;
+        --accent-glow: rgba(255, 0, 68, 0.35);
+        --accent2: #7c4dff;
+        --accent3: #00e5a0;
+        --border: rgba(255, 255, 255, 0.06);
+        --border-focus: rgba(255, 0, 68, 0.5);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 18px;
+        --radius-xl: 24px;
+        --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+        --shadow-glow: 0 0 40px rgba(255, 0, 68, 0.15);
+        --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+
+      html {
+        scroll-behavior: smooth;
       }
 
       body {
-        font-family: "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        padding: 20px;
-        max-width: 1400px;
+        font-family: var(--font);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* ═══════════════════════════════════════
+         SCROLLBAR
+         ═══════════════════════════════════════ */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-primary);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--text-muted);
+        border-radius: 999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
+      }
+
+      /* ═══════════════════════════════════════
+         LAYOUT
+         ═══════════════════════════════════════ */
+      .app {
+        max-width: 1600px;
         margin: 0 auto;
-        color: var(--text-color);
-        line-height: 1.6;
+        padding: 20px 24px 60px;
       }
 
-      h2 {
-        color: var(--primary-color);
+      /* ═══════════════════════════════════════
+         HEADER
+         ═══════════════════════════════════════ */
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .logo {
+        width: 46px;
+        height: 46px;
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: grid;
+        place-items: center;
+        font-size: 20px;
+        font-weight: 800;
+        color: #fff;
+        box-shadow: 0 4px 16px var(--accent-glow);
+        flex-shrink: 0;
+      }
+
+      .header h1 {
+        font-size: clamp(20px, 3vw, 28px);
+        font-weight: 700;
+        letter-spacing: -0.3px;
+      }
+      .header h1 span {
+        color: var(--accent);
+      }
+
+      .header-sub {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 2px;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      /* ═══════════════════════════════════════
+         STATS BAR
+         ═══════════════════════════════════════ */
+      .stats-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
         margin-bottom: 20px;
-        border-bottom: 2px solid var(--primary-color);
-        padding-bottom: 10px;
       }
 
+      .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 14px 20px;
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        transition: background 0.2s, transform 0.2s;
+      }
+      .stat-card:hover {
+        background: var(--bg-card-hover);
+        transform: translateY(-2px);
+      }
+      .stat-card .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .stat-card .stat-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+      }
+      .stat-card.accent .stat-value {
+        color: var(--accent);
+      }
+      .stat-card.green .stat-value {
+        color: var(--accent3);
+      }
+      .stat-card.purple .stat-value {
+        color: var(--accent2);
+      }
+
+      /* ═══════════════════════════════════════
+         CONTROL PANEL
+         ═══════════════════════════════════════ */
       .control-panel {
-        background-color: var(--light-gray);
-        padding: 15px;
-        border-radius: 8px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 18px 20px;
         margin-bottom: 20px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-card);
       }
 
-      .input-group {
+      .panel-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+      }
+
+      .panel-tab {
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        transition: all 0.2s;
+        font-family: var(--font);
+      }
+      .panel-tab:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .panel-tab.active {
+        color: var(--text-primary);
+        background: rgba(255, 0, 68, 0.12);
+      }
+
+      .panel-body {
+        display: none;
+      }
+      .panel-body.active {
+        display: block;
+      }
+
+      .input-row {
         display: flex;
         gap: 10px;
-        margin-bottom: 15px;
         flex-wrap: wrap;
         align-items: center;
       }
 
-      input {
-        padding: 10px;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
+      .input-row input,
+      .input-row select {
+        padding: 10px 14px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        border-radius: var(--radius-sm);
         font-size: 14px;
-      }
-
-      input:focus {
+        font-family: var(--font);
         outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+        transition: border-color 0.2s, box-shadow 0.2s;
       }
 
-      button {
-        padding: 10px 15px;
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 4px;
+      .input-row input::placeholder {
+        color: var(--text-muted);
+      }
+      .input-row input:focus,
+      .input-row select:focus {
+        border-color: var(--border-focus);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+
+      .input-row input.url-input {
+        flex: 1;
+        min-width: 200px;
+      }
+      .input-row input.num-input {
+        width: 80px;
+      }
+      .input-row select {
         cursor: pointer;
-        font-weight: 500;
+      }
+
+      /* Buttons */
+      .btn {
+        padding: 10px 18px;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 600;
+        font-family: var(--font);
+        cursor: pointer;
         transition: all 0.2s;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
+        white-space: nowrap;
+      }
+      .btn:active {
+        transform: scale(0.97);
       }
 
-      button:hover {
-        background-color: #cc0000;
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 4px 16px var(--accent-glow);
+      }
+      .btn-primary:hover {
+        background: #dc003a;
+        box-shadow: 0 6px 24px var(--accent-glow);
         transform: translateY(-1px);
       }
 
-      button:active {
-        transform: translateY(0);
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+      }
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.12);
       }
 
-      button.secondary {
-        background-color: var(--secondary-color);
+      .btn-success {
+        background: var(--accent3);
+        color: #0b0e1a;
+      }
+      .btn-success:hover {
+        background: #00c88a;
       }
 
-      button.secondary:hover {
-        background-color: #1a1a1a;
+      .btn-danger {
+        background: rgba(255, 0, 68, 0.15);
+        color: var(--accent);
+        border: 1px solid rgba(255, 0, 68, 0.2);
+      }
+      .btn-danger:hover {
+        background: rgba(255, 0, 68, 0.25);
+      }
+
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      .btn-icon {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        border-radius: var(--radius-sm);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .btn-toggle {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+      }
+      .btn-toggle.active {
+        background: rgba(255, 0, 68, 0.15);
+        color: var(--accent);
+        border-color: rgba(255, 0, 68, 0.3);
+      }
+
+      /* ═══════════════════════════════════════
+         PLAYLIST PANEL
+         ═══════════════════════════════════════ */
+      .playlist-grid {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .playlist-card {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 140px;
+        flex: 1;
+      }
+      .playlist-card:hover {
+        background: var(--bg-card-hover);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+      .playlist-card .pl-name {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .playlist-card .pl-count {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 2px;
+      }
+
+      .playlist-custom-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      /* ═══════════════════════════════════════
+         VIDEO GRID
+         ═══════════════════════════════════════ */
+      .video-grid-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .video-grid-header .left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .video-grid-header .left h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-secondary);
       }
 
       #videos {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
-        gap: 15px;
+        gap: 16px;
+        transition: all 0.3s;
+        min-height: 120px;
       }
 
+      #videos.layout-auto {
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      }
+      #videos.layout-1 {
+        grid-template-columns: 1fr;
+      }
+      #videos.layout-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      #videos.layout-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      #videos.layout-4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      @media (max-width: 900px) {
+        #videos.layout-3,
+        #videos.layout-4 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 600px) {
+        #videos.layout-2,
+        #videos.layout-3,
+        #videos.layout-4 {
+          grid-template-columns: 1fr;
+        }
+        #videos.layout-auto {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ═══════════════════════════════════════
+         VIDEO CONTAINER
+         ═══════════════════════════════════════ */
       .video-container {
         position: relative;
-        border-radius: 8px;
+        background: var(--bg-card);
+        border-radius: var(--radius-md);
         overflow: hidden;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s;
+        border: 1px solid var(--border);
+        transition: all 0.3s;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       }
-
       .video-container:hover {
-        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        transform: translateY(-2px);
       }
 
-      iframe {
+      .video-container iframe {
         width: 100%;
-        height: 270px;
+        aspect-ratio: 16 / 9;
+        display: block;
         border: none;
       }
 
-      .video-actions {
-        position: absolute;
-        top: 10px;
-        right: 10px;
+      .video-info {
+        padding: 10px 12px;
         display: flex;
-        gap: 5px;
-        opacity: 0;
-        transition: opacity 0.2s;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
       }
 
-      .video-container:hover .video-actions {
+      .video-info .vid-label {
+        color: var(--text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+      }
+
+      .video-info .vid-stats {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .video-info .vid-stats span {
+        color: var(--text-muted);
+        font-size: 11px;
+      }
+
+      .video-info .vid-stats .watchtime-val {
+        color: var(--accent3);
+        font-weight: 600;
+      }
+
+      .video-hover-actions {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: flex;
+        gap: 4px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 10;
+      }
+      .video-container:hover .video-hover-actions {
         opacity: 1;
       }
 
-      .video-actions button {
-        padding: 5px 8px;
+      .video-hover-actions .btn {
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        border: none;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
         font-size: 12px;
-        background-color: rgba(0, 0, 0, 0.7);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .video-hover-actions .btn:hover {
+        background: rgba(255, 0, 68, 0.8);
+        transform: scale(1.1);
       }
 
+      /* ═══════════════════════════════════════
+         EMPTY STATE
+         ═══════════════════════════════════════ */
       .empty-state {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
         text-align: center;
-        padding: 40px;
-        color: #666;
-        background-color: var(--light-gray);
-        border-radius: 8px;
+        background: var(--bg-card);
+        border: 2px dashed var(--border);
+        border-radius: var(--radius-xl);
       }
 
+      .empty-state .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.4;
+      }
+      .empty-state h3 {
+        font-size: 18px;
+        margin-bottom: 6px;
+        color: var(--text-secondary);
+      }
+      .empty-state p {
+        font-size: 14px;
+        color: var(--text-muted);
+        max-width: 360px;
+      }
+
+      /* ═══════════════════════════════════════
+         TOAST
+         ═══════════════════════════════════════ */
+      .toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      }
+
+      .toast {
+        padding: 12px 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: var(--shadow-card);
+        pointer-events: auto;
+        animation: toastIn 0.3s ease;
+        backdrop-filter: blur(12px);
+        max-width: 360px;
+      }
+
+      .toast.error {
+        border-color: var(--accent);
+      }
+      .toast.success {
+        border-color: var(--accent3);
+      }
+
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateX(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes toastOut {
+        from {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(40px);
+        }
+      }
+
+      /* ═══════════════════════════════════════
+         SETTINGS ROW (inline)
+         ═══════════════════════════════════════ */
+      .settings-grid {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .setting-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .setting-group label {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      .setting-group input[type="number"],
+      .setting-group select {
+        padding: 6px 10px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: var(--font);
+        outline: none;
+        width: 80px;
+      }
+      .setting-group select {
+        width: auto;
+      }
+      .setting-group input:focus,
+      .setting-group select:focus {
+        border-color: var(--border-focus);
+      }
+
+      /* Toggle switch */
+      .toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .toggle {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        cursor: pointer;
+        transition: background 0.25s;
+        flex-shrink: 0;
+      }
+      .toggle.active {
+        background: var(--accent);
+      }
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.25s, left 0.25s;
+      }
+      .toggle.active::after {
+        left: 20px;
+      }
+      .toggle-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* ═══════════════════════════════════════
+         KEYBOARD SHORTCUTS HINT
+         ═══════════════════════════════════════ */
+      .kbd-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 10px;
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .kbd-hint kbd {
+        background: var(--bg-input);
+        padding: 2px 7px;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        font-size: 11px;
+        font-family: var(--font);
+      }
+
+      /* ═══════════════════════════════════════
+         RESPONSIVE
+         ═══════════════════════════════════════ */
       @media (max-width: 600px) {
-        #videos {
-          grid-template-columns: 1fr;
+        .app {
+          padding: 14px 12px 40px;
         }
-
-        .input-group {
+        .input-row {
           flex-direction: column;
-          align-items: stretch;
         }
-
-        input,
-        button {
+        .input-row input.url-input,
+        .input-row input.num-input,
+        .input-row select,
+        .input-row .btn {
           width: 100%;
+        }
+        .header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .header-right {
+          width: 100%;
+        }
+        .stats-bar .stat-card {
+          min-width: 80px;
+          padding: 10px 12px;
+        }
+        .stat-card .stat-value {
+          font-size: 18px;
+        }
+        .video-grid-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .toast-container {
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+        }
+        .toast {
+          max-width: 100%;
+        }
+        .playlist-grid {
+          flex-direction: column;
         }
       }
     </style>
   </head>
   <body>
-    <h2>YouTube Multi View</h2>
+    <div class="app">
+      <!-- ═══ HEADER ═══ -->
+      <header class="header">
+        <div class="header-left">
+          <div class="logo">▶</div>
+          <div>
+            <h1>YT <span>MultiView</span></h1>
+            <div class="header-sub">Watchtime &amp; Views Optimizer</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-secondary btn-sm" id="kbdToggle" title="Keyboard shortcuts">
+            ⌨ Shortcuts
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="clearAll()" title="Remove all videos">
+            🗑 Clear All
+          </button>
+        </div>
+      </header>
 
-    <div class="control-panel">
-      <div class="input-group">
-        <input
-          type="text"
-          id="videoUrl"
-          placeholder="Paste YouTube URL (e.g., https://youtu.be/dQw4w9WgXcQ)"
-          size="50"
-        />
-        <input
-          type="number"
-          id="startTime"
-          placeholder="Start time (seconds)"
-          min="0"
-        />
-        <input
-          type="number"
-          id="videoCount"
-          placeholder="Number of copies"
-          min="1"
-          value="1"
-          style="width: 120px"
-        />
-        <button onclick="addVideo()">➕ Add Video</button>
+      <!-- ═══ STATS BAR ═══ -->
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-card accent">
+          <div class="stat-value" id="statVideos">0</div>
+          <div class="stat-label">Videos</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-value" id="statPlaying">0</div>
+          <div class="stat-label">Playing</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-value" id="statWatchtime">0:00:00</div>
+          <div class="stat-label">Total Watchtime</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statViews">0</div>
+          <div class="stat-label">Sessions Started</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statLoops">0</div>
+          <div class="stat-label">Auto-Loops</div>
+        </div>
       </div>
 
-      <div class="input-group">
-        <button onclick="playAll()">▶️ Play All</button>
-        <button onclick="pauseAll()">⏸️ Pause All</button>
-        <button onclick="muteAll()">🔇 Mute All</button>
-        <button onclick="unmuteAll()">🔊 Unmute All</button>
-        <button onclick="stopAll()" class="secondary">⏹️ Stop All</button>
-        <button onclick="clearAll()" class="secondary">🗑️ Clear All</button>
+      <!-- ═══ CONTROL PANEL ═══ -->
+      <div class="control-panel">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="add">➕ Add Videos</button>
+          <button class="panel-tab" data-tab="playlist">📋 Playlists</button>
+          <button class="panel-tab" data-tab="settings">⚙ Settings</button>
+        </div>
+
+        <!-- Tab: Add Videos -->
+        <div class="panel-body active" id="tab-add">
+          <div class="input-row">
+            <input
+              type="text"
+              id="videoUrl"
+              class="url-input"
+              placeholder="YouTube URL (e.g., https://youtu.be/dQw4w9WgXcQ)"
+              autocomplete="off"
+            />
+            <input
+              type="number"
+              id="startTime"
+              class="num-input"
+              placeholder="Start (s)"
+              min="0"
+              title="Start time in seconds"
+            />
+            <select id="videoCount" title="Number of copies">
+              <option value="1">1 copy</option>
+              <option value="2">2 copies</option>
+              <option value="3">3 copies</option>
+              <option value="4">4 copies</option>
+              <option value="5">5 copies</option>
+              <option value="10">10 copies</option>
+            </select>
+            <button class="btn btn-primary" onclick="addVideo()">➕ Add</button>
+          </div>
+        </div>
+
+        <!-- Tab: Playlists -->
+        <div class="panel-body" id="tab-playlist">
+          <div class="playlist-grid" id="playlistGrid"></div>
+          <div class="playlist-custom-row">
+            <input
+              type="text"
+              id="playlistNameInput"
+              placeholder="Playlist name..."
+              style="flex:1; min-width:120px; padding:8px 12px; background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); font-size:13px; outline:none; font-family:var(--font);"
+            />
+            <button class="btn btn-secondary btn-sm" onclick="saveCurrentAsPlaylist()">💾 Save Current</button>
+          </div>
+        </div>
+
+        <!-- Tab: Settings -->
+        <div class="panel-body" id="tab-settings">
+          <div class="settings-grid">
+            <div class="setting-group">
+              <label>Grid Layout:</label>
+              <select id="layoutSelect" onchange="changeLayout(this.value)">
+                <option value="auto">Auto</option>
+                <option value="1">1 Column</option>
+                <option value="2">2 Columns</option>
+                <option value="3">3 Columns</option>
+                <option value="4">4 Columns</option>
+              </select>
+            </div>
+
+            <div class="toggle-wrap">
+              <div class="toggle active" id="autoPlayToggle" onclick="toggleAutoPlay()"></div>
+              <span class="toggle-label">Auto-Play on Add</span>
+            </div>
+
+            <div class="toggle-wrap">
+              <div class="toggle active" id="autoLoopToggle" onclick="toggleAutoLoop()"></div>
+              <span class="toggle-label">Auto-Loop Videos</span>
+            </div>
+
+            <div class="toggle-wrap">
+              <div class="toggle" id="autoReloadToggle" onclick="toggleAutoReload()"></div>
+              <span class="toggle-label">Auto-Reload (views)</span>
+            </div>
+
+            <div class="setting-group" id="reloadIntervalGroup" style="display:none;">
+              <label>Reload every:</label>
+              <select id="reloadInterval">
+                <option value="300">5 min</option>
+                <option value="600" selected>10 min</option>
+                <option value="900">15 min</option>
+                <option value="1800">30 min</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ VIDEO GRID HEADER ═══ -->
+      <div class="video-grid-header">
+        <div class="left">
+          <h3>📺 Players</h3>
+          <span style="font-size:12px; color:var(--text-muted);" id="playerCountLabel">0 active</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm" onclick="playAll()">▶ Play All</button>
+          <button class="btn btn-secondary btn-sm" onclick="pauseAll()">⏸ Pause All</button>
+          <button class="btn btn-secondary btn-sm" onclick="muteAll()">🔇 Mute All</button>
+          <button class="btn btn-secondary btn-sm" onclick="unmuteAll()">🔊 Unmute All</button>
+        </div>
+      </div>
+
+      <!-- ═══ VIDEO GRID ═══ -->
+      <div id="videos" class="layout-auto">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">🎬</div>
+          <h3>No videos yet</h3>
+          <p>Paste a YouTube URL above to add videos. They'll play simultaneously to maximize watchtime.</p>
+        </div>
       </div>
     </div>
 
-    <div id="videos">
-      <div class="empty-state" id="emptyState">
-        <p>No videos added yet. Add your first YouTube video to get started!</p>
+    <!-- ═══ TOAST CONTAINER ═══ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ═══ KEYBOARD SHORTCUTS MODAL (simple overlay) ═══ -->
+    <div
+      id="shortcutOverlay"
+      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:9998; align-items:center; justify-content:center;"
+      onclick="this.style.display='none'"
+    >
+      <div
+        style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:28px 32px; max-width:400px; width:90%; box-shadow:var(--shadow-card);"
+        onclick="event.stopPropagation()"
+      >
+        <h3 style="margin-bottom:14px; font-size:18px;">⌨ Keyboard Shortcuts</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <tr><td style="padding:6px 0;"><kbd style="background:var(--bg-input); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-family:var(--font);">Enter</kbd></td><td style="padding:6px 0; color:var(--text-secondary);">Add video</td></tr>
+          <tr><td style="padding:6px 0;"><kbd style="background:var(--bg-input); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-family:var(--font);">Space</kbd></td><td style="padding:6px 0; color:var(--text-secondary);">Play / Pause all</td></tr>
+          <tr><td style="padding:6px 0;"><kbd style="background:var(--bg-input); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-family:var(--font);">M</kbd></td><td style="padding:6px 0; color:var(--text-secondary);">Mute / Unmute all</td></tr>
+          <tr><td style="padding:6px 0;"><kbd style="background:var(--bg-input); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-family:var(--font);">L</kbd></td><td style="padding:6px 0; color:var(--text-secondary);">Toggle auto-loop</td></tr>
+          <tr><td style="padding:6px 0;"><kbd style="background:var(--bg-input); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-family:var(--font);">R</kbd></td><td style="padding:6px 0; color:var(--text-secondary);">Toggle auto-reload</td></tr>
+          <tr><td style="padding:6px 0;"><kbd style="background:var(--bg-input); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-family:var(--font);">1-4</kbd></td><td style="padding:6px 0; color:var(--text-secondary);">Grid layout</td></tr>
+        </table>
+        <button class="btn btn-secondary btn-sm" style="margin-top:14px; width:100%;" onclick="document.getElementById('shortcutOverlay').style.display='none'">Close</button>
       </div>
     </div>
 
-    <!-- YouTube IFrame API -->
+    <!-- ═══ SCRIPTS ═══ -->
     <script src="https://www.youtube.com/iframe_api"></script>
-
     <script>
-      let players = [];
-      const emptyState = document.getElementById("emptyState");
+      /* ============================================================
+         STATE
+         ============================================================ */
+      const STORAGE_KEY = "ytmultiview_state";
+      const PLAYLISTS_KEY = "ytmultiview_playlists";
 
-      console.log(players);
-      function updateEmptyState() {
-        emptyState.style.display = players.length > 0 ? "none" : "block";
+      let players = [];
+      let totalWatchtimeSeconds = 0;
+      let totalViews = 0;
+      let totalLoops = 0;
+      let isAutoPlay = true;
+      let isAutoLoop = true;
+      let isAutoReload = false;
+      let reloadInterval = 600;
+      let reloadTimer = null;
+      let watchtimeInterval = null;
+      let saveDebounceTimer = null;
+      let ytReady = false;
+      let pendingRestore = false;
+
+      const STATE = {
+        settings: {
+          autoPlay: true,
+          autoLoop: true,
+          autoReload: false,
+          reloadInterval: 600,
+          layout: "auto",
+        },
+        videos: [], // { videoId, startTime } — restored on load
+      };
+
+      /* ============================================================
+         DOM REFS
+         ============================================================ */
+      const $ = (id) => document.getElementById(id);
+      const videosEl = $("videos");
+      const emptyState = $("emptyState");
+      const toastContainer = $("toastContainer");
+
+      /* ============================================================
+         YOUTUBE API READY
+         ============================================================ */
+      function onYouTubeIframeAPIReady() {
+        ytReady = true;
+        restoreState();
       }
 
+      /* ============================================================
+         STATE PERSISTENCE
+         ============================================================ */
+      function saveState() {
+        try {
+          const data = {
+            settings: STATE.settings,
+            videos: players.map((p) => ({
+              videoId: p.videoId,
+              startTime: p.startTime,
+              playerId: p.id,
+            })),
+            totalWatchtimeSeconds,
+            totalViews,
+            totalLoops,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch {}
+      }
+
+      function restoreState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          if (data.settings) Object.assign(STATE.settings, data.settings);
+          if (data.totalWatchtimeSeconds) totalWatchtimeSeconds = data.totalWatchtimeSeconds;
+          if (data.totalViews) totalViews = data.totalViews;
+          if (data.totalLoops) totalLoops = data.totalLoops;
+          if (data.videos && data.videos.length) {
+            STATE.videos = data.videos;
+            pendingRestore = true;
+            // Restore settings UI
+            applySettingsUI();
+            // Re-create players
+            recreatePlayersFromState();
+          } else {
+            applySettingsUI();
+          }
+          updateStats();
+        } catch {}
+      }
+
+      function recreatePlayersFromState() {
+        if (!ytReady || !pendingRestore) return;
+        pendingRestore = false;
+        const vids = STATE.videos;
+        STATE.videos = [];
+        vids.forEach((v) => {
+          createPlayer(v.videoId, v.startTime || 0, v.playerId);
+        });
+        // Start auto-reload after players are restored
+        if (isAutoReload) startAutoReload();
+      }
+
+      /* ============================================================
+         VIDEO ID EXTRACTION
+         ============================================================ */
       function extractVideoId(url) {
-        // Handle various YouTube URL formats
         const patterns = [
           /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
           /youtube\.com\/live\/([^"&?\/\s]{11})/,
           /youtube\.com\/shorts\/([^"&?\/\s]{11})/,
         ];
-
-        for (const pattern of patterns) {
-          const match = url.match(pattern);
-          if (match) return match[1];
+        for (const p of patterns) {
+          const m = url.match(p);
+          if (m) return m[1];
         }
         return null;
       }
 
+      /* ============================================================
+         ADD VIDEOS
+         ============================================================ */
       function addVideo() {
-        const url = document.getElementById("videoUrl").value.trim();
-        const start = parseInt(document.getElementById("startTime").value) || 0;
-        const count =
-          parseInt(document.getElementById("videoCount").value) || 1;
+        const url = $("videoUrl").value.trim();
+        const start = parseInt($("startTime").value) || 0;
+        const count = parseInt($("videoCount").value) || 1;
         const videoId = extractVideoId(url);
 
         if (!videoId) {
-          alert("Please enter a valid YouTube URL");
+          showToast("Enter a valid YouTube URL", "error");
           return;
         }
 
         for (let i = 0; i < count; i++) {
-          const container = document.createElement("div");
-          container.className = "video-container";
-          const playerId = "player_" + Date.now() + "_" + i;
-
-          container.innerHTML = `
-      <div id="${playerId}"></div>
-      <div class="video-actions">
-        <button onclick="removeVideo('${playerId}')">✕</button>
-      </div>
-    `;
-
-          document.getElementById("videos").appendChild(container);
-
-          new YT.Player(playerId, {
-            height: "270",
-            width: "480",
-            videoId: videoId,
-            playerVars: {
-              start: start,
-              enablejsapi: 1,
-              modestbranding: 1,
-              rel: 0,
-              controls: 1,
-            },
-            events: {
-              onReady: function (event) {
-                players.push({
-                  player: event.target,
-                  startTime: start,
-                  container: container,
-                  id: playerId,
-                });
-                updateEmptyState();
-              },
-              onStateChange: function (event) {
-                if (event.data === YT.PlayerState.ENDED) {
-                  const p = players.find((p) => p.player === event.target);
-                  if (p) {
-                    setTimeout(() => {
-                      p.player.seekTo(p.startTime);
-                      p.player.playVideo();
-                    }, 500);
-                  }
-                }
-              },
-            },
-          });
+          const playerId = "p_" + Date.now() + "_" + i + "_" + Math.random().toString(36).slice(2, 6);
+          createPlayer(videoId, start, playerId);
         }
 
-        // Clear inputs
-        document.getElementById("videoUrl").value = "";
-        document.getElementById("startTime").value = "";
-        document.getElementById("videoCount").value = "1";
+        $("videoUrl").value = "";
+        $("startTime").value = "";
+        $("videoCount").value = "1";
+        showToast(`Added ${count} video${count > 1 ? "s" : ""}`, "success");
+        saveState();
+
+        // Focus back on URL input
+        $("videoUrl").focus();
       }
-      function removeVideo(playerId) {
-        const playerIndex = players.findIndex((p) => p.id === playerId);
-        if (playerIndex !== -1) {
-          players[playerIndex].player.destroy();
-          players[playerIndex].container.remove();
-          players.splice(playerIndex, 1);
-          updateEmptyState();
+
+      /* ============================================================
+         CREATE PLAYER
+         ============================================================ */
+      function createPlayer(videoId, startTime, playerId) {
+        const container = document.createElement("div");
+        container.className = "video-container";
+        container.id = "c_" + playerId;
+
+        container.innerHTML = `
+          <div id="${playerId}"></div>
+          <div class="video-hover-actions">
+            <button class="btn" onclick="removeVideo('${playerId}')" title="Remove">✕</button>
+            <button class="btn" onclick="togglePlay('${playerId}')" title="Play/Pause">▶</button>
+            <button class="btn" onclick="toggleMute('${playerId}')" title="Mute/Unmute">🔇</button>
+          </div>
+          <div class="video-info">
+            <div class="vid-label" title="${videoId}">${videoId}</div>
+            <div class="vid-stats">
+              <span>🔄 <span id="loop_${playerId}">0</span></span>
+              <span>⏱ <span class="watchtime-val" id="wt_${playerId}">0s</span></span>
+            </div>
+          </div>
+        `;
+
+        // Insert before empty state
+        const empty = $("emptyState");
+        if (empty && empty.parentNode === videosEl) {
+          videosEl.insertBefore(container, empty);
+        } else {
+          videosEl.appendChild(container);
         }
+
+        new YT.Player(playerId, {
+          height: "100%",
+          width: "100%",
+          videoId: videoId,
+          playerVars: {
+            start: startTime,
+            enablejsapi: 1,
+            modestbranding: 1,
+            rel: 0,
+            controls: 1,
+            autoplay: isAutoPlay ? 1 : 0,
+          },
+          events: {
+            onReady: (event) => {
+              const playerObj = {
+                player: event.target,
+                startTime: startTime,
+                container: container,
+                id: playerId,
+                videoId: videoId,
+                watchtime: 0,
+                loops: 0,
+                isPlaying: false,
+              };
+              players.push(playerObj);
+              updateEmptyState();
+              updateStats();
+
+              if (isAutoPlay) {
+                event.target.playVideo();
+              }
+
+              // Auto-start reload when first player is ready
+              if (pendingRestore && players.length === STATE.videos.length) {
+                pendingRestore = false;
+                if (isAutoReload) startAutoReload();
+              }
+            },
+            onStateChange: (event) => {
+              const p = players.find((pl) => pl.player === event.target);
+              if (!p) return;
+
+              if (event.data === YT.PlayerState.PLAYING) {
+                p.isPlaying = true;
+                totalViews++;
+                updateStats();
+
+                // Update the play button icon
+                const btn = container.querySelector(".video-hover-actions .btn:nth-child(2)");
+                if (btn) btn.textContent = "⏸";
+              }
+
+              if (event.data === YT.PlayerState.PAUSED) {
+                p.isPlaying = false;
+                const btn = container.querySelector(".video-hover-actions .btn:nth-child(2)");
+                if (btn) btn.textContent = "▶";
+              }
+
+              if (event.data === YT.PlayerState.ENDED) {
+                if (isAutoLoop) {
+                  p.loops++;
+                  totalLoops++;
+                  const loopEl = document.getElementById("loop_" + p.id);
+                  if (loopEl) loopEl.textContent = p.loops;
+                  setTimeout(() => {
+                    p.player.seekTo(p.startTime);
+                    p.player.playVideo();
+                  }, 300);
+                }
+                p.isPlaying = false;
+                updateStats();
+              }
+
+              updateStats();
+            },
+            onError: (event) => {
+              const errorMessages = {
+                2: "Invalid video ID",
+                5: "HTML5 player error",
+                100: "Video not found or removed",
+                101: "Embedding disabled by video owner",
+                150: "Embedding disabled by video owner — try a different video",
+              };
+              const msg = errorMessages[event.data] || `Error (${event.data})`;
+              console.warn("Player error for", playerId, event.data, msg);
+              showToast(`${msg}`, "error");
+              // Mark the container with error styling
+              container.style.opacity = "0.5";
+            },
+          },
+        });
+
+        updateEmptyState();
+      }
+
+      /* ============================================================
+         UPDATE EMPTY STATE
+         ============================================================ */
+      function updateEmptyState() {
+        if (players.length === 0) {
+          if (!emptyState.parentNode || emptyState.parentNode !== videosEl) {
+            videosEl.appendChild(emptyState);
+          }
+          emptyState.style.display = "flex";
+        } else {
+          if (emptyState.parentNode === videosEl) {
+            emptyState.remove();
+          }
+          emptyState.style.display = "none";
+        }
+        $("playerCountLabel").textContent = players.length + " active";
+        updateStats();
+      }
+
+      /* ============================================================
+         WATCHTIME TRACKER
+         ============================================================ */
+      function startWatchtimeTracker() {
+        if (watchtimeInterval) clearInterval(watchtimeInterval);
+        watchtimeInterval = setInterval(() => {
+          players.forEach((p) => {
+            if (p.isPlaying) {
+              p.watchtime++;
+              totalWatchtimeSeconds++;
+              const wtEl = document.getElementById("wt_" + p.id);
+              if (wtEl) wtEl.textContent = formatDuration(p.watchtime);
+            }
+          });
+          updateStats();
+          // Debounce saveState to reduce writes
+          if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
+          saveDebounceTimer = setTimeout(() => saveState(), 4000);
+        }, 1000);
+      }
+
+      /* ============================================================
+         UPDATE STATS
+         ============================================================ */
+      function updateStats() {
+        const playing = players.filter((p) => p.isPlaying).length;
+        $("statVideos").textContent = players.length;
+        $("statPlaying").textContent = playing;
+        $("statWatchtime").textContent = formatDuration(totalWatchtimeSeconds);
+        $("statViews").textContent = totalViews;
+        $("statLoops").textContent = totalLoops;
+      }
+
+      function formatDuration(secs) {
+        if (!secs || secs < 0) return "0:00:00";
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      }
+
+      /* ============================================================
+         AUTO-RELOAD SYSTEM
+         ============================================================ */
+      function startAutoReload() {
+        stopAutoReload();
+        if (!isAutoReload || players.length === 0) return;
+
+        reloadTimer = setInterval(() => {
+          if (!isAutoReload || players.length === 0) return;
+          // Reload all players: seek to start and play
+          players.forEach((p) => {
+            try {
+              p.player.seekTo(p.startTime);
+              p.player.playVideo();
+              totalViews++;
+            } catch {}
+          });
+          showToast(`🔄 Auto-reloaded ${players.length} players`, "success");
+          updateStats();
+          saveState();
+        }, reloadInterval * 1000);
+      }
+
+      function stopAutoReload() {
+        if (reloadTimer) {
+          clearInterval(reloadTimer);
+          reloadTimer = null;
+        }
+      }
+
+      /* ============================================================
+         CONTROLS
+         ============================================================ */
+      function removeVideo(playerId) {
+        const idx = players.findIndex((p) => p.id === playerId);
+        if (idx === -1) return;
+        const p = players[idx];
+        try {
+          p.player.destroy();
+        } catch {}
+        const cont = document.getElementById("c_" + playerId);
+        if (cont) cont.remove();
+        players.splice(idx, 1);
+        updateEmptyState();
+        updateStats();
+        saveState();
+        showToast("Video removed", "success");
+      }
+
+      function togglePlay(playerId) {
+        const p = players.find((pl) => pl.id === playerId);
+        if (!p) return;
+        if (p.isPlaying) {
+          p.player.pauseVideo();
+        } else {
+          p.player.playVideo();
+        }
+      }
+
+      function toggleMute(playerId) {
+        const p = players.find((pl) => pl.id === playerId);
+        if (!p) return;
+        try {
+          const wasMuted = p.player.isMuted();
+          if (wasMuted) {
+            p.player.unMute();
+          } else {
+            p.player.mute();
+          }
+          // Update button icon
+          const btns = p.container.querySelectorAll(".video-hover-actions .btn");
+          const muteBtn = btns[btns.length - 1]; // last btn is mute
+          if (muteBtn) muteBtn.textContent = wasMuted ? "🔇" : "🔊";
+        } catch {}
       }
 
       function playAll() {
-        players.forEach((p) => p.player.playVideo());
+        players.forEach((p) => {
+          p.player.playVideo();
+          p.isPlaying = true;
+        });
+        updateStats();
       }
 
       function pauseAll() {
-        players.forEach((p) => p.player.pauseVideo());
+        players.forEach((p) => {
+          p.player.pauseVideo();
+          p.isPlaying = false;
+        });
+        updateStats();
       }
 
       function muteAll() {
-        players.forEach((p) => p.player.mute());
+        players.forEach((p) => {
+          try {
+            p.player.mute();
+          } catch {}
+        });
       }
 
       function unmuteAll() {
-        players.forEach((p) => p.player.unMute());
-      }
-
-      function stopAll() {
         players.forEach((p) => {
-          p.player.stopVideo();
-          p.player.seekTo(p.startTime, true);
+          try {
+            p.player.unMute();
+          } catch {}
         });
       }
 
       function clearAll() {
+        if (players.length === 0) return;
+        if (!confirm("Remove all videos?")) return;
         players.forEach((p) => {
-          p.player.destroy();
-          p.container.remove();
+          try {
+            p.player.destroy();
+          } catch {}
+          const cont = document.getElementById("c_" + p.id);
+          if (cont) cont.remove();
         });
         players = [];
         updateEmptyState();
+        updateStats();
+        localStorage.removeItem(STORAGE_KEY);
+        showToast("All videos cleared", "success");
       }
 
-      // Allow adding video with Enter key
-      document
-        .getElementById("videoUrl")
-        .addEventListener("keypress", function (e) {
-          if (e.key === "Enter") {
+      /* ============================================================
+         SETTINGS CONTROLS
+         ============================================================ */
+      function changeLayout(val) {
+        videosEl.className = "layout-" + val;
+        STATE.settings.layout = val;
+        saveState();
+      }
+
+      function toggleAutoPlay() {
+        isAutoPlay = !isAutoPlay;
+        document.getElementById("autoPlayToggle").classList.toggle("active", isAutoPlay);
+        STATE.settings.autoPlay = isAutoPlay;
+        saveState();
+      }
+
+      function toggleAutoLoop() {
+        isAutoLoop = !isAutoLoop;
+        document.getElementById("autoLoopToggle").classList.toggle("active", isAutoLoop);
+        STATE.settings.autoLoop = isAutoLoop;
+        saveState();
+        showToast(isAutoLoop ? "Auto-Loop ON" : "Auto-Loop OFF", "success");
+      }
+
+      function toggleAutoReload() {
+        isAutoReload = !isAutoReload;
+        document.getElementById("autoReloadToggle").classList.toggle("active", isAutoReload);
+        document.getElementById("reloadIntervalGroup").style.display = isAutoReload ? "flex" : "none";
+        STATE.settings.autoReload = isAutoReload;
+        if (isAutoReload) {
+          reloadInterval = parseInt(document.getElementById("reloadInterval").value) || 600;
+          startAutoReload();
+          showToast(`Auto-Reload ON (every ${reloadInterval / 60} min)`, "success");
+        } else {
+          stopAutoReload();
+          showToast("Auto-Reload OFF", "success");
+        }
+        saveState();
+      }
+
+      // Reload interval change
+      document.addEventListener("change", (e) => {
+        if (e.target.id === "reloadInterval") {
+          reloadInterval = parseInt(e.target.value) || 600;
+          if (isAutoReload) {
+            startAutoReload();
+          }
+          STATE.settings.reloadInterval = reloadInterval;
+          saveState();
+        }
+      });
+
+      /* ============================================================
+         APPLY SETTINGS UI
+         ============================================================ */
+      function applySettingsUI() {
+        const s = STATE.settings;
+        isAutoPlay = s.autoPlay;
+        isAutoLoop = s.autoLoop;
+        isAutoReload = s.autoReload;
+        reloadInterval = s.reloadInterval || 600;
+
+        document.getElementById("autoPlayToggle").classList.toggle("active", isAutoPlay);
+        document.getElementById("autoLoopToggle").classList.toggle("active", isAutoLoop);
+        document.getElementById("autoReloadToggle").classList.toggle("active", isAutoReload);
+        document.getElementById("reloadIntervalGroup").style.display = isAutoReload ? "flex" : "none";
+        document.getElementById("layoutSelect").value = s.layout || "auto";
+        document.getElementById("reloadInterval").value = String(reloadInterval);
+
+        if (s.layout && s.layout !== "auto") {
+          videosEl.className = "layout-" + s.layout;
+        } else {
+          videosEl.className = "layout-auto";
+        }
+
+        if (isAutoReload) startAutoReload();
+      }
+
+      /* ============================================================
+         PLAYLISTS
+         ============================================================ */
+      const PRESET_PLAYLISTS = [
+        {
+          name: "🎵 Music Mix",
+          videos: [
+            "dQw4w9WgXcQ",
+            "JGwWNGJdvx8",
+            "kXYiU_JCYtU",
+            "fJ9rUzIMcZQ",
+            "RgKAFK5djSk",
+            "9bZkp7q19f0",
+          ],
+        },
+        {
+          name: "🌿 Lo-Fi / Chill",
+          videos: [
+            "jfKfPfyJRdk",
+            "5qap5aO4i9A",
+            "DWcJFNfaw9c",
+            "hHW1oY26pQ0",
+            "lTRiuFIWV54",
+          ],
+        },
+        {
+          name: "📚 Educational",
+          videos: [
+            "8wCuQ11s7qg",
+            "5MgBikgcWnY",
+            "RqJVI8iK0bA",
+            "M640bB7TKvQ",
+            "zWg7U0O1o5E",
+          ],
+        },
+        {
+          name: "🎮 Gaming BGM",
+          videos: [
+            "5Y3aF2Xy0YM",
+            "7bM2B6ZGK4o",
+            "pK2zYjqKz0Y",
+            "gjCJ1_HMDC0",
+            "WZxZ1T1vFys",
+          ],
+        },
+        {
+          name: "🌍 Nature Scenes",
+          videos: [
+            "aK5bN6tJz6s",
+            "iOlnBUhHlWY",
+            "0jqsn3oNvEE",
+            "KZgX45A2iQQ",
+            "kGXipCF2r-o",
+          ],
+        },
+      ];
+
+      let customPlaylists = [];
+
+      function loadPlaylists() {
+        try {
+          const raw = localStorage.getItem(PLAYLISTS_KEY);
+          if (raw) customPlaylists = JSON.parse(raw);
+        } catch {}
+        renderPlaylists();
+      }
+
+      function renderPlaylists() {
+        const grid = $("playlistGrid");
+        grid.innerHTML = "";
+
+        const allPlaylists = [...PRESET_PLAYLISTS, ...customPlaylists];
+
+        allPlaylists.forEach((pl) => {
+          const card = document.createElement("div");
+          card.className = "playlist-card";
+          card.innerHTML = `
+            <div class="pl-name">${pl.name}</div>
+            <div class="pl-count">${pl.videos.length} video${pl.videos.length > 1 ? "s" : ""}</div>
+          `;
+          card.addEventListener("click", () => loadPlaylist(pl.videos));
+          grid.appendChild(card);
+        });
+
+        if (allPlaylists.length === 0) {
+          grid.innerHTML =
+            '<div style="color:var(--text-muted); font-size:14px; padding:12px;">No playlists yet.</div>';
+        }
+      }
+
+      function loadPlaylist(videoIds) {
+        if (videoIds.length === 0) return;
+        videoIds.forEach((id, i) => {
+          const playerId = "p_" + Date.now() + "_pl_" + i + "_" + Math.random().toString(36).slice(2, 6);
+          createPlayer(id, 0, playerId);
+        });
+        showToast(`Loaded ${videoIds.length} videos from playlist`, "success");
+        saveState();
+        // Switch to add tab
+        switchTab("add");
+      }
+
+      function saveCurrentAsPlaylist() {
+        const name = $("playlistNameInput").value.trim();
+        if (!name) {
+          showToast("Enter a playlist name", "error");
+          return;
+        }
+        const vids = players.map((p) => p.videoId);
+        if (vids.length === 0) {
+          showToast("No videos to save", "error");
+          return;
+        }
+        // Check for duplicate
+        const existing = [...PRESET_PLAYLISTS, ...customPlaylists].find((p) => p.name === name);
+        if (existing) {
+          if (!confirm(`Playlist "${name}" already exists. Overwrite?`)) return;
+          // If it's a custom playlist, update it
+          const idx = customPlaylists.findIndex((p) => p.name === name);
+          if (idx >= 0) {
+            customPlaylists[idx] = { name, videos: vids };
+          } else {
+            customPlaylists.push({ name, videos: vids });
+          }
+        } else {
+          customPlaylists.push({ name, videos: vids });
+        }
+
+        try {
+          localStorage.setItem(PLAYLISTS_KEY, JSON.stringify(customPlaylists));
+        } catch {}
+        renderPlaylists();
+        $("playlistNameInput").value = "";
+        showToast(`Playlist "${name}" saved (${vids.length} videos)`, "success");
+      }
+
+      /* ============================================================
+         TAB SWITCHING
+         ============================================================ */
+      document.querySelectorAll(".panel-tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          switchTab(tab.dataset.tab);
+        });
+      });
+
+      function switchTab(name) {
+        document.querySelectorAll(".panel-tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".panel-body").forEach((b) => b.classList.remove("active"));
+        document.querySelector(`.panel-tab[data-tab="${name}"]`).classList.add("active");
+        document.getElementById("tab-" + name).classList.add("active");
+      }
+
+      /* ============================================================
+         TOAST NOTIFICATIONS
+         ============================================================ */
+      function showToast(message, type) {
+        const el = document.createElement("div");
+        el.className = "toast" + (type === "error" ? " error" : type === "success" ? " success" : "");
+        el.textContent = message;
+        toastContainer.appendChild(el);
+        setTimeout(() => {
+          el.style.animation = "toastOut 0.3s ease forwards";
+          setTimeout(() => el.remove(), 300);
+        }, 3000);
+      }
+
+      /* ============================================================
+         KEYBOARD SHORTCUTS
+         ============================================================ */
+      document.addEventListener("keydown", (e) => {
+        // Don't handle shortcuts when typing in inputs
+        if (
+          e.target.tagName === "INPUT" ||
+          e.target.tagName === "SELECT" ||
+          e.target.tagName === "TEXTAREA"
+        ) {
+          if (e.key === "Enter" && e.target.id === "videoUrl") {
             addVideo();
           }
-        });
+          return;
+        }
+
+        switch (e.key) {
+          case " ":
+            e.preventDefault();
+            if (players.some((p) => p.isPlaying)) {
+              pauseAll();
+            } else {
+              playAll();
+            }
+            break;
+          case "m":
+          case "M":
+            // Toggle mute state for all players
+            {
+              const anyUnmuted = players.some((p) => {
+                try { return !p.player.isMuted(); } catch { return false; }
+              });
+              if (anyUnmuted) {
+                muteAll();
+                showToast("All muted", "success");
+              } else {
+                unmuteAll();
+                showToast("All unmuted", "success");
+              }
+            }
+            break;
+          case "l":
+          case "L":
+            toggleAutoLoop();
+            break;
+          case "r":
+          case "R":
+            toggleAutoReload();
+            break;
+          case "1":
+            changeLayout("1");
+            document.getElementById("layoutSelect").value = "1";
+            break;
+          case "2":
+            changeLayout("2");
+            document.getElementById("layoutSelect").value = "2";
+            break;
+          case "3":
+            changeLayout("3");
+            document.getElementById("layoutSelect").value = "3";
+            break;
+          case "4":
+            changeLayout("4");
+            document.getElementById("layoutSelect").value = "4";
+            break;
+          case "?":
+            $("shortcutOverlay").style.display = "flex";
+            break;
+        }
+      });
+
+      // Shortcut toggle
+      document.getElementById("kbdToggle").addEventListener("click", () => {
+        const overlay = document.getElementById("shortcutOverlay");
+        overlay.style.display = overlay.style.display === "flex" ? "none" : "flex";
+      });
+
+      /* ============================================================
+         TAB VISIBILITY HANDLER — auto-resume playback
+         ============================================================ */
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          // Resume any players that were playing when hidden
+          players.forEach((p) => {
+            if (p.isPlaying) {
+              try { p.player.playVideo(); } catch {}
+            }
+          });
+        }
+      });
+
+      /* ============================================================
+         ENTER KEY ON URL INPUT
+         ============================================================ */
+      document.getElementById("videoUrl").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addVideo();
+        }
+      });
+
+      /* ============================================================
+         START WATCHTIME TRACKER
+         ============================================================ */
+      startWatchtimeTracker();
+
+      /* ============================================================
+         LOAD PLAYLISTS
+         ============================================================ */
+      loadPlaylists();
+
+      /* ============================================================
+         AUTO-RESTORE ON YT READY
+         ============================================================ */
+      // If YT API already loaded
+      if (typeof YT !== "undefined" && YT.loaded) {
+        ytReady = true;
+        restoreState();
+      }
+
+      console.log("🚀 YT MultiView ready — add videos to start boosting watchtime!");
     </script>
   </body>
 </html>

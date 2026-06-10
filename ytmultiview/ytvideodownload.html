@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Video Downloader – Direct URLs Only</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --card: #121a2b;
+        --text: #e9eef8;
+        --muted: #a7b0c3;
+        --accent: #7aa2ff;
+        --good: #27c093;
+        --bad: #ff6b6b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(
+            1200px 800px at 20% 0%,
+            #0e1831 0%,
+            #0b1220 40%
+          ),
+          var(--bg);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 48px auto;
+        padding: 0 20px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+      header .logo {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #7aa2ff, #6ff0c3);
+        color: #071226;
+        font-weight: 800;
+      }
+      h1 {
+        font-size: clamp(22px, 4vw, 32px);
+        margin: 0;
+        letter-spacing: 0.5px;
+      }
+      .card {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.04),
+          rgba(255, 255, 255, 0.02)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      input[type="url"],
+      input[type="text"] {
+        width: 100%;
+        padding: 12px 14px;
+        background: #0e1627;
+        border: 1px solid #223153;
+        color: #e9eef8;
+        border-radius: 12px;
+        outline: none;
+        font-size: 15px;
+        transition: border-color 0.2s ease;
+      }
+      input:focus {
+        border-color: var(--accent);
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+      }
+      .row > * {
+        flex: 1;
+      }
+      button {
+        appearance: none;
+        border: none;
+        cursor: pointer;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        background: var(--accent);
+        color: #071226;
+        transition: transform 0.05s ease, box-shadow 0.2s ease, opacity 0.2s;
+        box-shadow: 0 8px 22px rgba(122, 162, 255, 0.3);
+      }
+      button.secondary {
+        background: #1a2743;
+        color: #d6def1;
+        box-shadow: none;
+        border: 1px solid #26385f;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      .hint {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+      .progress {
+        margin-top: 16px;
+      }
+      progress {
+        width: 100%;
+        height: 14px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #0e1627;
+      }
+      progress::-webkit-progress-bar {
+        background: #0e1627;
+      }
+      progress::-webkit-progress-value {
+        background: linear-gradient(90deg, var(--accent), var(--good));
+      }
+      .status {
+        margin-top: 10px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .ok {
+        color: var(--good);
+      }
+      .err {
+        color: var(--bad);
+      }
+      footer {
+        margin-top: 18px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      code {
+        background: #0e1627;
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid #223153;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="logo">DL</div>
+        <div>
+          <h1>Video Downloader (Direct URLs you’re allowed to save)</h1>
+          <div class="hint">
+            Paste a <strong>direct</strong> video file link (e.g.
+            <code>.mp4</code>, <code>.webm</code>). This won’t work for YouTube
+            or other sites that block downloads or use DRM.
+          </div>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="grid">
+          <div>
+            <label for="url">Video file URL</label>
+            <input
+              id="url"
+              type="url"
+              placeholder="https://example.com/video.mp4"
+              autocomplete="off"
+            />
+          </div>
+          <div class="row">
+            <div>
+              <label for="filename">Save as (optional)</label>
+              <input
+                id="filename"
+                type="text"
+                placeholder="my-video.mp4"
+                autocomplete="off"
+              />
+            </div>
+            <div
+              style="
+                max-width: 180px;
+                display: flex;
+                align-items: flex-end;
+                gap: 10px;
+              "
+            >
+              <button id="download">Download</button>
+              <button id="cancel" class="secondary" disabled>Cancel</button>
+            </div>
+          </div>
+          <div class="progress">
+            <progress id="bar" value="0" max="1"></progress>
+            <div class="status" id="status">Idle</div>
+          </div>
+        </div>
+        <div class="hint">
+          Tip: Many servers disallow cross‑origin downloads via browsers (CORS).
+          If you get a CORS error, you’ll need the file hosted with proper
+          headers or use a server you control.
+        </div>
+      </section>
+
+      <br />
+
+      <footer>
+        <p>
+          <strong>Legal note:</strong> Only download media you own or have
+          permission to save. Respect site terms and copyrights.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        const el = (id) => document.getElementById(id);
+        const urlI = el("url");
+        const fileI = el("filename");
+        const bar = el("bar");
+        const status = el("status");
+        const btn = el("download");
+        const cancelBtn = el("cancel");
+
+        let controller = null;
+
+        function deriveName(u, mime) {
+          try {
+            const url = new URL(u);
+            let name = url.pathname.split("/").pop() || "video";
+            if (!name.includes(".")) {
+              const ext = mimeToExt(mime) || "mp4";
+              name += "." + ext;
+            }
+            return decodeURIComponent(name);
+          } catch {
+            return "video.mp4";
+          }
+        }
+        function mimeToExt(mime) {
+          if (!mime) return "";
+          if (mime.includes("mp4")) return "mp4";
+          if (mime.includes("webm")) return "webm";
+          if (mime.includes("x-matroska") || mime.includes("mkv")) return "mkv";
+          if (mime.includes("ogg")) return "ogv";
+          return "";
+        }
+
+        async function download() {
+          const url = (urlI.value || "").trim();
+          if (!/^https?:\/\//i.test(url)) {
+            return setStatus(
+              "Please enter a valid http(s) direct file URL.",
+              true
+            );
+          }
+          btn.disabled = true;
+          cancelBtn.disabled = false;
+          bar.value = 0;
+          bar.removeAttribute("max");
+          setStatus("Connecting…");
+
+          controller = new AbortController();
+          try {
+            const res = await fetch(url, {
+              signal: controller.signal,
+              mode: "cors",
+            });
+            if (!res.ok)
+              throw new Error("HTTP " + res.status + " " + res.statusText);
+            const len = +res.headers.get("Content-Length");
+            const type = res.headers.get("Content-Type") || "";
+            const name = (fileI.value.trim() || deriveName(url, type)).replace(
+              /[\/:*?"<>|]/g,
+              "-"
+            );
+
+            const reader = res.body.getReader();
+            const chunks = [];
+            let received = 0;
+
+            if (Number.isFinite(len) && len > 0) bar.max = len;
+            else bar.removeAttribute("max");
+
+            setStatus("Downloading…");
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              received += value.length;
+              if (bar.hasAttribute("max")) bar.value = received;
+              else bar.value = (bar.value + 0.01) % 1; // indeterminate shim
+            }
+
+            setStatus("Finalizing…");
+            const blob = new Blob(chunks, { type });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(a.href);
+            setStatus("Saved ✓", false, true);
+          } catch (err) {
+            if (err.name === "AbortError") setStatus("Canceled.", true);
+            else if (/TypeError: Failed to fetch/i.test(String(err)))
+              setStatus("Network/CORS blocked the download.", true);
+            else setStatus(err.message || "Download failed.", true);
+          } finally {
+            btn.disabled = false;
+            cancelBtn.disabled = true;
+            controller = null;
+            bar.value = 0;
+          }
+        }
+
+        function cancel() {
+          if (controller) controller.abort();
+        }
+
+        function setStatus(msg, isErr = false, ok = false) {
+          status.textContent = msg;
+          status.classList.toggle("err", !!isErr);
+          status.classList.toggle("ok", !!ok);
+        }
+
+        btn.addEventListener("click", download);
+        cancelBtn.addEventListener("click", cancel);
+      })();
+    </script>
+  </body>
+</html>
