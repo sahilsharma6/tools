@@ -1879,6 +1879,50 @@
       /* ============================================================
          RANDOM VIDEO FROM PLAYLIST
          ============================================================ */
+      function addCurrentToPlaylist(encodedName) {
+        const name = decodeURIComponent(encodedName);
+        const currentVids = players.map((p) => p.videoId);
+        if (currentVids.length === 0) {
+          showToast("No videos in player to add", "error");
+          return;
+        }
+
+        // If it's a preset, auto-clone to custom first
+        let customIdx = customPlaylists.findIndex((p) => p.name === name);
+        if (customIdx === -1) {
+          const preset = PRESET_PLAYLISTS.find((p) => p.name === name);
+          if (!preset) {
+            showToast("Playlist not found", "error");
+            return;
+          }
+          customPlaylists.push({ name: preset.name, videos: [...preset.videos] });
+          customIdx = customPlaylists.length - 1;
+        }
+
+        const pl = customPlaylists[customIdx];
+        // Add only unique videos (not already in playlist)
+        const existingSet = new Set(pl.videos);
+        let added = 0;
+        currentVids.forEach((vid) => {
+          if (!existingSet.has(vid)) {
+            pl.videos.push(vid);
+            added++;
+          }
+        });
+
+        if (added === 0) {
+          showToast("All current videos are already in this playlist", "success");
+          return;
+        }
+
+        try {
+          localStorage.setItem(PLAYLISTS_KEY, JSON.stringify(customPlaylists));
+        } catch {}
+        renderPlaylists();
+        openPlaylistDetail(encodeURIComponent(name));
+        showToast(`Added ${added} video${added > 1 ? "s" : ""} to "${name}"`, "success");
+      }
+
       function addRandomVideoFromPlaylist(encodedName) {
         const name = decodeURIComponent(encodedName);
         let pl = customPlaylists.find((p) => p.name === name);
@@ -2023,6 +2067,7 @@
             <div class="pl-count">${pl.videos.length} video${pl.videos.length > 1 ? "s" : ""}</div>
             <div class="pl-actions">
               <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openPlaylistDetail('${encodeURIComponent(pl.name)}')">📂 Open</button>
+              <button class="btn btn-add-vid btn-sm" onclick="event.stopPropagation(); addCurrentToPlaylist('${encodeURIComponent(pl.name)}')">➕ Add Current</button>
               <button class="btn btn-random btn-sm" onclick="event.stopPropagation(); addRandomVideoFromPlaylist('${encodeURIComponent(pl.name)}')">🎲 Random</button>
               <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deletePlaylist('${encodeURIComponent(pl.name)}')">🗑 Delete</button>
             </div>
@@ -2112,6 +2157,7 @@
             <h4>${pl.name} <span style="font-weight:400; font-size:12px; color:var(--text-muted);">(${pl.videos.length} video${pl.videos.length !== 1 ? "s" : ""})</span></h4>
             <div class="pd-actions">
               <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); loadPlaylistFromDetail()">▶ Load All</button>
+              <button class="btn btn-add-vid btn-sm" onclick="event.stopPropagation(); addCurrentToPlaylist('${encodeURIComponent(name)}')">➕ Add Current</button>
               <button class="btn btn-random btn-sm" onclick="event.stopPropagation(); addRandomVideoFromPlaylist('${encodeURIComponent(name)}')">🎲 Random</button>
               <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deletePlaylist('${encodeURIComponent(name)}')">🗑 Delete</button>
               <button class="btn btn-secondary btn-sm" onclick="closePlaylistDetail()">✕ Close</button>
